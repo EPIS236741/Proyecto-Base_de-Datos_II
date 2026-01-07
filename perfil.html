@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil | Banco V3</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* Mismos estilos generales */
+        :root { --sidebar-bg: #0f172a; --bg-body: #f1f5f9; --primary: #1e293b; --accent: #10b981; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg-body); color: #1e293b; height: 100vh; display: flex; overflow: hidden; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .menu-item { padding: 15px; color: #94a3b8; display: flex; gap: 10px; text-decoration: none; border-radius: 8px; margin-bottom: 5px; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        .profile-card {
+            background: white; max-width: 600px; margin: 0 auto;
+            padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .avatar-circle {
+            width: 80px; height: 80px; background: var(--sidebar-bg); color: white;
+            border-radius: 50%; font-size: 2rem; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px auto;
+        }
+        .info-row { margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .info-label { font-size: 0.85em; color: #64748b; display: block; margin-bottom: 5px; }
+        .info-val { font-weight: bold; font-size: 1.1em; }
+        
+        .btn { width: 100%; padding: 12px; border:none; border-radius: 6px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .btn-pass { background: #f1f5f9; color: var(--primary); }
+        .btn-pass:hover { background: #e2e8f0; }
+        .btn-logout { background: #fef2f2; color: #ef4444; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <h2 style="margin-bottom: 40px;"><i class='bx bxs-bank'></i> Banco V3</h2>
+        <nav>
+            <a href="index.html" class="menu-item"><i class='bx bxs-dashboard'></i> Resumen</a>
+            <a href="tarjetas.html" class="menu-item"><i class='bx bx-credit-card'></i> Tarjetas</a>
+            <a href="#" class="menu-item" style="background: rgba(255,255,255,0.1); color:white;"><i class='bx bx-user'></i> Mi Perfil</a>
+            <a href="index.html" class="menu-item" style="margin-top:auto;"><i class='bx bx-arrow-back'></i> Volver</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="profile-card">
+            <div class="avatar-circle"><i class='bx bx-user'></i></div>
+            <h2 style="text-align: center; margin-bottom: 30px;">Mis Datos Personales</h2>
+            
+            <div class="info-row">
+                <span class="info-label">Nombre Completo</span>
+                <span class="info-val" id="p-nombre">Cargando...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">DNI / Documento</span>
+                <span class="info-val" id="p-dni">...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Correo Electrónico</span>
+                <span class="info-val" id="p-email">...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Rol de Usuario</span>
+                <span class="info-val" id="p-rol" style="color:var(--accent);">CLIENTE</span>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button class="btn btn-pass" onclick="cambiarPassword()">Cambiar Contraseña</button>
+                <button class="btn btn-logout" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="perfil.js"></script>
+</body>
+</html>

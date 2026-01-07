@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucursales y Cajeros | Banco V3</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* Estilos Base */
+        :root { --sidebar-bg: #0f172a; --bg-body: #f1f5f9; --primary: #1e293b; --accent: #10b981; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg-body); color: #1e293b; height: 100vh; display: flex; overflow: hidden; }
+        
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .menu-item { padding: 15px; color: #94a3b8; display: flex; gap: 10px; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        /* HEADER DE FILTROS */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .search-inp { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 300px; }
+
+        /* GRID DE SUCURSALES */
+        .branches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* TARJETA DE SUCURSAL */
+        .branch-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            border-top: 4px solid var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .branch-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        .b-city { text-transform: uppercase; font-size: 0.75rem; color: #64748b; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
+        .b-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); }
+        .b-address { font-size: 0.9rem; color: #475569; margin-bottom: 15px; display: flex; gap: 8px; }
+        
+        .badges { display: flex; gap: 10px; margin-bottom: 20px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .badge-atm { background: #dcfce7; color: #166534; }
+        .badge-time { background: #f1f5f9; color: #475569; }
+
+        .btn-map {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-map:hover { background: #f8fafc; border-color: #cbd5e1; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2 style="margin-bottom: 40px;"><i class='bx bxs-bank'></i> Banco V3</h2>
+        <nav>
+            <a href="index.html" class="menu-item"><i class='bx bxs-dashboard'></i> Resumen</a>
+            <a href="tarjetas.html" class="menu-item"><i class='bx bx-credit-card'></i> Tarjetas</a>
+            <a href="#" class="menu-item active" style="background: rgba(255,255,255,0.1); color:white;">
+                <i class='bx bx-map'></i> Sucursales
+            </a>
+            <a href="perfil.html" class="menu-item"><i class='bx bx-user'></i> Mi Perfil</a>
+            
+            <a href="index.html" class="menu-item" style="margin-top:auto;"><i class='bx bx-arrow-back'></i> Volver</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Nuestras Sedes</h1>
+                <p style="color:#64748b;">Encuentra la agencia o cajero más cercano.</p>
+            </div>
+            <input type="text" id="buscador" class="search-inp" placeholder="Buscar por ciudad o distrito..." onkeyup="filtrarSucursales()">
+        </div>
+
+        <div id="loading" style="text-align:center; padding: 40px; color: #94a3b8;">
+            <i class='bx bx-loader-alt bx-spin' style="font-size: 2rem;"></i>
+            <p>Cargando mapa de agencias...</p>
+        </div>
+
+        <div id="grid-sucursales" class="branches-grid"></div>
+
+    </main>
+
+    <script src="config.js"></script>
+    <script src="sucursales.js"></script>
+</body>
+</html>

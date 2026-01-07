@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Tarjetas | Banco V3</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* Estilos Base (Igual al index) */
+        :root { --sidebar-bg: #0f172a; --bg-body: #f1f5f9; --primary: #1e293b; --accent: #10b981; --danger: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg-body); color: #1e293b; height: 100vh; display: flex; overflow: hidden; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .menu-item { padding: 15px; color: #94a3b8; display: flex; gap: 10px; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; }
+
+        /* --- DISEÑO DE TARJETA --- */
+        .card-container { perspective: 1000px; margin-bottom: 30px; }
+        .credit-card {
+            width: 360px; height: 220px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 20px;
+            color: white;
+            padding: 25px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .credit-card.congelada { filter: grayscale(100%); opacity: 0.8; }
+        
+        .chip { width: 50px; height: 35px; background: linear-gradient(135deg, #fbbf24, #d97706); border-radius: 5px; margin-bottom: 20px; }
+        .card-number { font-size: 1.6rem; letter-spacing: 2px; margin-bottom: 25px; font-family: 'Courier New', monospace; text-shadow: 0 2px 2px rgba(0,0,0,0.3); }
+        .card-info { display: flex; justify-content: space-between; font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; }
+        .card-name { color: white; font-size: 1rem; margin-top: 5px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+        
+        /* Controles */
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 360px; }
+        .btn-control {
+            background: white; border: none; padding: 15px; border-radius: 12px;
+            font-weight: bold; color: var(--primary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s;
+        }
+        .btn-control:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .btn-freeze { color: var(--danger); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <h2 style="margin-bottom: 40px;"><i class='bx bxs-bank'></i> Banco V3</h2>
+        <nav>
+            <a href="index.html" class="menu-item"><i class='bx bxs-dashboard'></i> Resumen</a>
+            <a href="#" class="menu-item active"><i class='bx bx-credit-card'></i> Tarjetas</a>
+            <a href="perfil.html" class="menu-item"><i class='bx bx-user'></i> Mi Perfil</a>
+            <a href="index.html" class="menu-item" style="margin-top:auto;"><i class='bx bx-arrow-back'></i> Volver</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <h1 style="margin-bottom: 40px;">Tarjeta Virtual</h1>
+
+        <div id="loading" style="margin-top: 50px;">Cargando tarjeta...</div>
+
+        <div id="no-card" style="display:none; text-align:center;">
+            <div style="font-size: 5rem; color:#cbd5e1;"><i class='bx bx-credit-card'></i></div>
+            <p>Aún no tienes una tarjeta virtual activa.</p>
+            <button class="btn-control" style="background:var(--accent); color:white; margin-top:20px;" onclick="crearTarjeta()">
+                Generar Tarjeta Gratis
+            </button>
+        </div>
+
+        <div id="card-view" style="display:none;">
+            <div class="card-container">
+            <div class="credit-card" id="visual-card">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div class="chip"></div>
+                    <i class='bx bxl-visa' style="font-size: 3rem; color: white; opacity: 0.8;"></i>
+                </div>
+                
+                <div class="card-number" id="cc-num">•••• •••• •••• ••••</div>
+                
+                <div style="text-align: right; margin-bottom: 15px; font-family: monospace;">
+                    <span style="font-size: 0.7em; opacity: 0.8; margin-right: 5px;">CVV</span>
+                    <span id="cc-cvv" style="font-weight: bold; background: white; color: #333; padding: 2px 5px; border-radius: 4px;">***</span>
+                </div>
+
+                <div class="card-info">
+                    <div>
+                        <span>Titular</span>
+                        <div class="card-name" id="cc-name">NOMBRE APELLIDO</div>
+                    </div>
+                    <div>
+                        <span>Vence</span>
+                        <div class="card-name" id="cc-exp">MM/YY</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-control" onclick="alternarNumeros()">
+                    <i class='bx bx-show'></i> <span id="btn-show-txt">Mostrar Datos</span>
+                </button>
+                <button class="btn-control btn-freeze" onclick="congelarTarjeta()">
+                    <i class='bx bx-lock-alt'></i> <span id="btn-lock-txt">Congelar</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="tarjetas.js"></script>
+</body>
+</html>

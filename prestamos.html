@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Créditos | Banco V3</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        /* Mismos estilos para consistencia visual */
+        :root { --sidebar-bg: #0f172a; --bg-body: #f1f5f9; --primary: #1e293b; --accent: #10b981; --danger: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg-body); color: #1e293b; height: 100vh; display: flex; overflow: hidden; }
+        
+        /* Layout */
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        /* Menú */
+        .brand { font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .menu-item { padding: 15px; color: #94a3b8; display: flex; gap: 10px; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; }
+
+        /* Tarjetas y Inputs */
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .inp { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; display: block; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        .btn:hover { opacity: 0.9; }
+
+        /* Tabla */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand"><i class='bx bxs-bank'></i> Banco V3</div>
+        <nav>
+            <a href="index.html" class="menu-item"><i class='bx bxs-dashboard'></i> Resumen</a>
+            <a href="index.html" class="menu-item"><i class='bx bx-wallet'></i> Mis Cuentas</a>
+            
+            <a href="#" class="menu-item active"><i class='bx bx-money'></i> Préstamos</a>
+            
+            <a href="#" onclick="cerrarSesion()" class="menu-item" style="margin-top:auto; color:var(--danger)">
+                <i class='bx bx-log-out'></i> Salir
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header style="margin-bottom: 30px;">
+            <h1>💰 Préstamos Personales</h1>
+            <p style="color:#64748b;">Solicita crédito al instante y revisa tu historial.</p>
+        </header>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+            
+            <div class="card">
+                <h3>Solicitar Nuevo</h3>
+                <p style="color:#666; font-size:0.9em; margin-bottom:15px;">Aprobación inmediata hasta S/ 50,000.</p>
+                
+                <label>Monto a solicitar (S/)</label>
+                <input type="number" id="pres-monto" class="inp" placeholder="0.00">
+                
+                <label>Plazo de pago</label>
+                <select id="pres-cuotas" class="inp" style="background:white;">
+                    <option value="6">6 Meses</option>
+                    <option value="12">12 Meses</option>
+                    <option value="24">24 Meses</option>
+                    <option value="36">36 Meses</option>
+                </select>
+
+                <button class="btn" onclick="solicitarPrestamo()">Solicitar Desembolso</button>
+            </div>
+
+            <div class="card">
+                <h3>Historial de Solicitudes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-prestamos">
+                        <tr><td colspan="3" style="text-align:center;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    
+    <script src="prestamos.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intranet Corporativa | Banco V3</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        :root {
+            --bg-dark: #1e1e2d;
+            --panel-bg: #2b2b40;
+            --text-main: #e1e1e6;
+            --text-muted: #a2a5b9;
+            --accent: #3699ff;
+            --success: #1bc5bd;
+            --danger: #f64e60;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        
+        body { background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
+
+        /* UTILIDADES */
+        .hidden { display: none !important; }
+        .btn { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn:hover { opacity: 0.8; }
+        .btn-primary { background: var(--accent); color: white; }
+        
+        /* LOGIN ADMIN */
+        .login-wrapper { display: flex; align-items: center; justify-content: center; height: 100%; }
+        .login-box { background: var(--panel-bg); padding: 40px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
+        .login-box h2 { margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .inp-admin { width: 100%; padding: 12px; margin: 10px 0; background: #181824; border: 1px solid #3f4254; color: white; border-radius: 4px; outline: none; }
+        .inp-admin:focus { border-color: var(--accent); }
+
+        /* DASHBOARD LAYOUT */
+        .topbar { background: var(--panel-bg); height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; border-bottom: 1px solid #3f4254; }
+        .brand { font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; width: 100%; }
+
+        /* TARJETAS */
+        .card { background: var(--panel-bg); border-radius: 8px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #3f4254; padding-bottom: 15px; }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: white; }
+
+        /* TABLA */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--text-muted); font-size: 0.85rem; padding: 15px; border-bottom: 1px solid #3f4254; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #3f4254; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        
+        .client-info { font-weight: bold; display: block; }
+        .date-info { font-size: 0.85rem; color: var(--text-muted); }
+        .amount { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
+        
+        .actions { display: flex; gap: 10px; }
+        .btn-approve { background: rgba(27, 197, 189, 0.2); color: var(--success); padding: 8px 15px; }
+        .btn-approve:hover { background: var(--success); color: white; }
+        .btn-reject { background: rgba(246, 78, 96, 0.2); color: var(--danger); padding: 8px 15px; }
+        .btn-reject:hover { background: var(--danger); color: white; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div id="view-login" class="login-wrapper">
+        <div class="login-box">
+            <i class='bx bxs-bank' style="font-size: 3rem; color: var(--accent); margin-bottom: 10px;"></i>
+            <h2>Acceso Corporativo</h2>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">Sistema de Riesgos y Aprobaciones</p>
+            
+            <div id="login-msg" style="color: var(--danger); margin-bottom: 15px; display: none;"></div>
+            
+            <input type="email" id="adm-email" class="inp-admin" placeholder="ID de Empleado (Email)">
+            <input type="password" id="adm-pass" class="inp-admin" placeholder="Contraseña">
+            
+            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="handleAdminLogin()">
+                <i class='bx bx-lock-alt'></i> Ingresar al Sistema
+            </button>
+        </div>
+    </div>
+
+    <div id="view-dashboard" class="hidden">
+        <div class="topbar">
+            <div class="brand"><i class='bx bxs-bank'></i> BANCO V3 <span style="font-weight: normal; color: var(--text-muted); font-size: 0.9rem;">| Intranet</span></div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span id="admin-name" style="color: var(--text-muted);">Administrador</span>
+                <button class="btn" style="background: #3f4254; color: white;" onclick="logout()">Cerrar Turno</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class='bx bx-time-five'></i> Solicitudes Pendientes</div>
+                    <button class="btn" style="background: #181824; color: white; font-size: 0.9rem;" onclick="cargarPendientes()">
+                        <i class='bx bx-refresh'></i> Actualizar
+                    </button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Fecha Solicitud</th>
+                            <th>Monto Solicitado</th>
+                            <th>Evaluación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pendientes">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN (TUS CREDENCIALES) ---
+        const SB_URL = 'https://rtcbzfntsnxqvjvsekef.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Y2J6Zm50c254cXZqdnNla2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyNTc3MTQsImV4cCI6MjA3NjgzMzcxNH0.X1Cqd_eMquc39g4AXuLsKizHPeH94J6M7iSso0gVRsI';
+        
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        // --- LOGIN & SEGURIDAD ---
+        async function handleAdminLogin() {
+            const email = document.getElementById('adm-email').value;
+            const password = document.getElementById('adm-pass').value;
+            const msg = document.getElementById('login-msg');
+            
+            // 1. Autenticación Básica
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                msg.innerText = "Credenciales incorrectas.";
+                msg.style.display = "block";
+                return;
+            }
+
+            // 2. Verificación de ROL (Seguridad Crítica)
+            // Llamamos a la función SQL que chequea si es 'ADMIN'
+            const { data: rol, error: rolError } = await sb.rpc('obtener_rol_usuario');
+
+            if (rol !== 'ADMIN') {
+                msg.innerText = "ACCESO DENEGADO: No tienes permisos administrativos.";
+                msg.style.display = "block";
+                await sb.auth.signOut(); // Expulsar inmediatamente
+            } else {
+                window.location.reload();
+            }
+        }
+
+        async function logout() {
+            await sb.auth.signOut();
+            window.location.reload();
+        }
+
+        // --- INICIALIZACIÓN ---
+        window.onload = async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            
+            if (session) {
+                // Verificar rol nuevamente al cargar
+                const { data: rol } = await sb.rpc('obtener_rol_usuario');
+                
+                if (rol === 'ADMIN') {
+                    document.getElementById('view-login').classList.add('hidden');
+                    document.getElementById('view-dashboard').classList.remove('hidden');
+                    document.getElementById('admin-name').innerText = session.user.email;
+                    cargarPendientes();
+                } else {
+                    // Si es cliente intentando entrar aqui -> Login
+                    await sb.auth.signOut();
+                }
+            }
+        };
+
+        // --- LÓGICA DE NEGOCIO ---
+        async function cargarPendientes() {
+            const tbody = document.getElementById('tabla-pendientes');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Cargando...</td></tr>';
+
+            // Llamada RPC para obtener datos limpios
+            const { data, error } = await sb.rpc('ver_prestamos_pendientes');
+
+            tbody.innerHTML = ''; // Limpiar loader
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class='bx bx-check-circle' style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                                No hay solicitudes pendientes por ahora.
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            data.forEach(solicitud => {
+                const fila = `
+                    <tr>
+                        <td>
+                            <span class="client-info">${solicitud.cliente}</span>
+                            <span class="date-info">ID Préstamo: #${solicitud.id_prestamo}</span>
+                        </td>
+                        <td style="color: var(--text-muted);">${solicitud.fecha}</td>
+                        <td class="amount">S/ ${solicitud.monto}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-approve" onclick="procesarPrestamo(${solicitud.id_prestamo}, 'APROBAR')">
+                                    <i class='bx bx-check'></i> Aprobar
+                                </button>
+                                <button class="btn btn-reject" onclick="procesarPrestamo(${solicitud.id_prestamo}, 'RECHAZAR')">
+                                    <i class='bx bx-x'></i> Rechazar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += fila;
+            });
+        }
+
+        async function procesarPrestamo(id, accion) {
+            let confirmacion = accion === 'APROBAR' 
+                ? "¿Estás seguro de APROBAR este préstamo? Se desembolsará el dinero inmediatamente."
+                : "¿Deseas RECHAZAR esta solicitud permanentemente?";
+
+            if (!confirm(confirmacion)) return;
+
+            // Determinar qué función RPC llamar
+            const rpcName = accion === 'APROBAR' ? 'aprobar_prestamo' : 'rechazar_prestamo';
+            
+            // Llamada al Backend
+            const { data, error } = await sb.rpc(rpcName, { p_id_prestamo: id });
+
+            if (error) {
+                alert("Error del sistema: " + error.message);
+            } else {
+                // Éxito visual
+                alert(accion === 'APROBAR' ? "¡Desembolso exitoso!" : "Solicitud rechazada.");
+                cargarPendientes(); // Recargar la tabla
+            }
+        }
+    </script>
+</body>
+</html>
